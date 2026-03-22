@@ -37,8 +37,15 @@ export function useProfileAnalysis() {
       });
 
       if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err || `HTTP ${res.status}`);
+        const text = await res.text();
+        let msg = text || `HTTP ${res.status}`;
+        try {
+          const json = JSON.parse(text) as { error?: string };
+          if (typeof json?.error === "string") msg = json.error;
+        } catch {
+          /* use raw text */
+        }
+        throw new Error(msg);
       }
 
       const reader = res.body?.getReader();

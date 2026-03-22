@@ -1,40 +1,26 @@
 import puppeteer from "puppeteer";
 
-function isValidProfileUrl(url: string): boolean {
+function isValidUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
-    const host = parsed.hostname.toLowerCase();
-    const allowed = [
-      "linkedin.com",
-      "twitter.com",
-      "x.com",
-      "instagram.com",
-      "github.com",
-      "medium.com",
-      "youtube.com",
-      "tiktok.com",
-      "facebook.com",
-      "about.me",
-      "linktr.ee",
-    ];
-    if (!allowed.some((h) => host.includes(h))) return false;
-    return true;
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
   } catch {
     return false;
   }
 }
 
 export async function screenshotUrl(url: string): Promise<string> {
-  if (!isValidProfileUrl(url)) {
-    throw new Error(
-      "URL not supported. Use LinkedIn, Twitter/X, Instagram, GitHub, or similar profile URLs."
-    );
+  if (!isValidUrl(url)) {
+    throw new Error("Invalid URL. Use a valid http or https URL (e.g. portfolio, LinkedIn, etc.).");
   }
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
   });
 
   try {
@@ -43,11 +29,12 @@ export async function screenshotUrl(url: string): Promise<string> {
     await page.setUserAgent(
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     );
+    // Use "load" instead of "networkidle2" - many sites never settle (analytics, websockets)
     await page.goto(url, {
-      waitUntil: "networkidle2",
-      timeout: 15000,
+      waitUntil: "load",
+      timeout: 25000,
     });
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 1500));
     const buffer = await page.screenshot({
       type: "png",
       fullPage: false,

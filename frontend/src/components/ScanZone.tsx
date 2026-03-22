@@ -175,9 +175,12 @@ export function ScanZone({
         >
           {urlPreview && isAnalyzing ? (
             <div className="relative flex-1 min-h-[280px] flex flex-col">
-              <div className="flex-1 flex flex-col items-center justify-center p-6">
-                <p className="text-sm text-[hsl(var(--muted-foreground))] break-all text-center mb-4 max-w-full truncate">
+              <div className="flex-1 flex flex-col items-center justify-center p-6 gap-2">
+                <p className="text-sm text-[hsl(var(--muted-foreground))] break-all text-center max-w-full">
                   {urlPreview}
+                </p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]/80">
+                  Capturing screenshot & analyzing… This may take 20–30 seconds.
                 </p>
               </div>
               <AIEyeOverlay />
@@ -191,11 +194,11 @@ export function ScanZone({
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://linkedin.com/in/username"
+                placeholder="https://luisrangelc.com or https://linkedin.com/in/username"
                 className="w-full px-4 py-3 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--input))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:border-transparent transition-shadow"
               />
               <p className="text-xs text-[hsl(var(--muted-foreground))] -mt-1">
-                LinkedIn, Twitter/X, Instagram, GitHub, and similar profiles
+                Portfolio, LinkedIn, Twitter, GitHub, or any profile URL
               </p>
               <Button
                 type="submit"

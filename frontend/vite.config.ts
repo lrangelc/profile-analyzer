@@ -11,7 +11,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "http://localhost:3001",
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        timeout: 120000, // 2 min - URL screenshots + AI can take 20–30s
+      },
     },
   },
 });

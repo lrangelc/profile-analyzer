@@ -4,6 +4,7 @@ import { ScanZone } from "@/components/ScanZone";
 import { ResultCard } from "@/components/ResultCard";
 import { RoastStream } from "@/components/RoastStream";
 import { BurnCardExport } from "@/components/BurnCard";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useProfileAnalysis } from "@/hooks/useProfileAnalysis";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
@@ -62,6 +63,11 @@ export default function App() {
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[hsl(var(--background))] to-transparent pointer-events-none z-0" />
       <div className="grain-overlay" />
+
+      {/* Theme toggle - fixed top-right, high z-index so always visible */}
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[100]">
+        <ThemeToggle />
+      </div>
 
       <motion.header
         className="relative z-10 text-center mb-6 sm:mb-10"
@@ -122,7 +128,7 @@ export default function App() {
                   >
                     <ol className="list-decimal list-inside space-y-2 p-4 pt-3 text-sm text-[hsl(var(--muted-foreground))]">
                       <li>Upload an image, paste a URL, or add a PDF/text file</li>
-                      <li>Use <strong className="text-[hsl(var(--foreground))]">Upload</strong> (images), <strong className="text-[hsl(var(--foreground))]">URL</strong> (LinkedIn, Twitter, etc.), or <strong className="text-[hsl(var(--foreground))]">File</strong> (PDF, TXT, MD)</li>
+                      <li>Use <strong className="text-[hsl(var(--foreground))]">Upload</strong> (images), <strong className="text-[hsl(var(--foreground))]">URL</strong> (portfolio, LinkedIn, etc.), or <strong className="text-[hsl(var(--foreground))]">File</strong> (PDF, TXT, MD)</li>
                       <li>Wait for the AI to analyze—grade, viral ideas, and roast</li>
                       <li>Download & share your Burn Card when done</li>
                     </ol>

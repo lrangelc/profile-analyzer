@@ -19,6 +19,8 @@ import {
   isImageFile,
 } from "../lib/extractText.js";
 
+const openaiModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
 const profileSchema = z.object({
   grade: z.enum(["A", "B", "C", "D", "F"]),
   viralIdeas: z.array(z.string()).min(3).max(5),
@@ -110,7 +112,7 @@ analyze.post("/analyze", async (c) => {
     return createDataStreamResponse({
       execute: async (writer) => {
         const { object } = await generateObject({
-          model: openai("gpt-4o-mini"),
+          model: openai(openaiModel),
           schema: profileSchema,
           system: STRUCTURED_ANALYSIS_TEXT_SYSTEM,
           messages: [
@@ -128,7 +130,7 @@ analyze.post("/analyze", async (c) => {
         });
 
         const result = streamText({
-          model: openai("gpt-4o-mini"),
+          model: openai(openaiModel),
           system: ROAST_TEXT_SYSTEM,
           messages: [
             {
@@ -153,7 +155,7 @@ analyze.post("/analyze", async (c) => {
   return createDataStreamResponse({
     execute: async (writer) => {
       const { object } = await generateObject({
-        model: openai("gpt-4o-mini"),
+        model: openai(openaiModel),
         schema: profileSchema,
         system: STRUCTURED_ANALYSIS_SYSTEM,
         messages: [
@@ -174,7 +176,7 @@ analyze.post("/analyze", async (c) => {
       });
 
       const result = streamText({
-        model: openai("gpt-4o-mini"),
+        model: openai(openaiModel),
         system: ROAST_SYSTEM,
         messages: [
           {

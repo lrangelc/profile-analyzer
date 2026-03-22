@@ -15,19 +15,41 @@ function getBestRoastLine(roast: string): string {
 }
 
 export default function App() {
-  const { grade, viralIdeas, roastText, isLoading, error, analyze, reset } = useProfileAnalysis();
+  const { grade, viralIdeas, roastText, isLoading, error, analyze, analyzeByUrl, analyzeFile, reset } = useProfileAnalysis();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [urlPreview, setUrlPreview] = useState<string | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const imageFileRef = useRef<File | null>(null);
 
   const handleAnalyze = useCallback((file: File) => {
     imageFileRef.current = file;
     setImagePreview(URL.createObjectURL(file));
+    setUrlPreview(null);
+    setFilePreview(null);
     analyze(file);
   }, [analyze]);
+
+  const handleAnalyzeUrl = useCallback((url: string) => {
+    setUrlPreview(url);
+    setImagePreview(null);
+    setFilePreview(null);
+    imageFileRef.current = null;
+    analyzeByUrl(url);
+  }, [analyzeByUrl]);
+
+  const handleAnalyzeFile = useCallback((file: File) => {
+    setFilePreview(file.name);
+    setImagePreview(null);
+    setUrlPreview(null);
+    imageFileRef.current = null;
+    analyzeFile(file);
+  }, [analyzeFile]);
 
   const handleReset = useCallback(() => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
+    setUrlPreview(null);
+    setFilePreview(null);
     imageFileRef.current = null;
     reset();
   }, [imagePreview, reset]);
@@ -58,14 +80,18 @@ export default function App() {
           >
             <ScanZone
               onAnalyze={handleAnalyze}
+              onAnalyzeUrl={handleAnalyzeUrl}
+              onAnalyzeFile={handleAnalyzeFile}
               imagePreview={imagePreview}
+              urlPreview={urlPreview}
+              filePreview={filePreview}
               isAnalyzing={isLoading}
             />
             <div className="w-full max-w-2xl rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-sm text-[hsl(var(--muted-foreground))]">
               <h3 className="font-medium text-[hsl(var(--foreground))] mb-3">How to use</h3>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Drag and drop a profile screenshot, or click to upload</li>
-                <li>Use a screenshot of any social profile (Instagram, Twitter, LinkedIn, etc.)</li>
+                <li>Upload an image, paste a URL, or add a PDF/text file</li>
+                <li>Use Upload (images), URL (LinkedIn, etc.), or File (PDF, TXT, MD)</li>
                 <li>Wait for the AI Eye to analyze—you'll see a grade, viral ideas, and a roast</li>
                 <li>Use &quot;Download & Share&quot; to save your Burn Card</li>
               </ol>

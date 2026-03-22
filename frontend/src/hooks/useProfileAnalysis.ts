@@ -22,7 +22,7 @@ export function useProfileAnalysis() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const analyze = useCallback(async (imageFile: File) => {
+  const runAnalysis = useCallback(async (body: { image?: string; url?: string; file?: string; mimeType?: string; filename?: string }) => {
     setIsLoading(true);
     setError(null);
     setGrade(null);
@@ -30,11 +30,10 @@ export function useProfileAnalysis() {
     setRoastText("");
 
     try {
-      const base64 = await fileToBase64(imageFile);
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64 }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -92,6 +91,24 @@ export function useProfileAnalysis() {
     }
   }, []);
 
+  const analyze = useCallback(async (imageFile: File) => {
+    const base64 = await fileToBase64(imageFile);
+    return runAnalysis({ image: base64 });
+  }, [runAnalysis]);
+
+  const analyzeByUrl = useCallback(async (url: string) => {
+    return runAnalysis({ url: url.trim() });
+  }, [runAnalysis]);
+
+  const analyzeFile = useCallback(async (file: File) => {
+    const base64 = await fileToBase64(file);
+    const dataUrl = base64;
+    const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    const mimeType = match?.[1] || file.type || "application/octet-stream";
+    const fileBase64 = match?.[2] || base64.split(",")[1] || "";
+    return runAnalysis({ file: fileBase64, mimeType, filename: file.name });
+  }, [runAnalysis]);
+
   const reset = useCallback(() => {
     setGrade(null);
     setViralIdeas([]);
@@ -106,6 +123,8 @@ export function useProfileAnalysis() {
     isLoading,
     error,
     analyze,
+    analyzeByUrl,
+    analyzeFile,
     reset,
   };
 }

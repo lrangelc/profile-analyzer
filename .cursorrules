@@ -1,0 +1,8 @@
+# .cursorrules
+
+- Use **TypeScript** for all files.
+- **Backend:** Use Hono with `ai` (Vercel AI SDK) for streaming.
+- **Frontend:** Use Vite (React) with Shadcn/UI components.
+- **AI Patterns:** Always use `streamText` from 'ai' package for backend responses.
+- **Visuals:** Use Lucide-react for icons and Framer Motion for "scanning" animations.
+- **Prohibition:** Do NOT use Next.js or Server Actions. Keep Hono and Vite separate.

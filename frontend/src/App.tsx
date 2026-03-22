@@ -61,6 +61,15 @@ export default function App() {
               imagePreview={imagePreview}
               isAnalyzing={isLoading}
             />
+            <div className="w-full max-w-2xl rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-sm text-[hsl(var(--muted-foreground))]">
+              <h3 className="font-medium text-[hsl(var(--foreground))] mb-3">How to use</h3>
+              <ol className="list-decimal list-inside space-y-2">
+                <li>Drag and drop a profile screenshot, or click to upload</li>
+                <li>Use a screenshot of any social profile (Instagram, Twitter, LinkedIn, etc.)</li>
+                <li>Wait for the AI Eye to analyze—you'll see a grade, viral ideas, and a roast</li>
+                <li>Use &quot;Download & Share&quot; to save your Burn Card</li>
+              </ol>
+            </div>
             {error && (
               <p className="text-sm text-red-500">{error}</p>
             )}

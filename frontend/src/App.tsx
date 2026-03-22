@@ -10,12 +10,6 @@ import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
-function getBestRoastLine(roast: string): string {
-  if (!roast.trim()) return "";
-  const sentences = roast.split(/[.!?]+/).filter(Boolean);
-  return sentences[0]?.trim() + (sentences[0]?.endsWith(".") ? "" : ".") || roast.slice(0, 120) + "...";
-}
-
 export default function App() {
   const { grade, viralIdeas, roastText, isLoading, error, analyze, analyzeByUrl, analyzeFile, reset } = useProfileAnalysis();
   const { isHealthy } = useBackendHealth();
@@ -170,7 +164,8 @@ export default function App() {
             {grade !== null && (
               <BurnCardExport
                 grade={grade}
-                bestRoastLine={getBestRoastLine(roastText)}
+                roastText={roastText}
+                viralIdeas={viralIdeas}
               />
             )}
             {error && (

@@ -6,6 +6,7 @@ import { RoastStream } from "@/components/RoastStream";
 import { BurnCardExport } from "@/components/BurnCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useProfileAnalysis } from "@/hooks/useProfileAnalysis";
+import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
@@ -17,6 +18,7 @@ function getBestRoastLine(roast: string): string {
 
 export default function App() {
   const { grade, viralIdeas, roastText, isLoading, error, analyze, analyzeByUrl, analyzeFile, reset } = useProfileAnalysis();
+  const { isHealthy } = useBackendHealth();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [urlPreview, setUrlPreview] = useState<string | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
@@ -85,17 +87,23 @@ export default function App() {
           <span className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
           <span className="text-xs font-medium text-[hsl(var(--primary))]">AI</span>
         </div>
+        {isHealthy === false && (
+          <p className="mt-3 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 max-w-md mx-auto">
+            Backend unreachable. Start it with <code className="font-mono text-[10px]">npm run dev:backend</code> or use <code className="font-mono text-[10px]">npm run dev</code> for both.
+          </p>
+        )}
       </motion.header>
 
-      <AnimatePresence mode="wait">
-        {!hasResult ? (
-          <motion.div
-            key="scan"
-            className="relative z-10 flex flex-col items-center gap-6 w-full max-w-2xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+      <main className="relative z-10 w-full max-w-2xl min-h-[400px] flex flex-col items-center">
+        <AnimatePresence mode="wait">
+          {!hasResult ? (
+            <motion.div
+              key="scan"
+              className="relative z-10 flex flex-col items-center gap-6 w-full"
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
             <ScanZone
               onAnalyze={handleAnalyze}
               onAnalyzeUrl={handleAnalyzeUrl}
@@ -150,8 +158,8 @@ export default function App() {
         ) : (
           <motion.div
             key="results"
-            className="relative z-10 flex flex-col items-center gap-6 max-w-2xl w-full"
-            initial={{ opacity: 0 }}
+            className="relative z-10 flex flex-col items-center gap-6 w-full"
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
@@ -174,7 +182,8 @@ export default function App() {
             </Button>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </main>
     </div>
   );
 }

@@ -92,7 +92,12 @@ export function useProfileAnalysis() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
+      const msg = err instanceof Error ? err.message : "Analysis failed";
+      if (msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("network")) {
+        setError("Connection failed. Make sure the backend is running (npm run dev:backend or npm run dev).");
+      } else {
+        setError(msg);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -33,8 +33,16 @@ type AnalysisInput =
   | { mode: "text"; text: string };
 
 analyze.post("/analyze", async (c) => {
-  let input: AnalysisInput | null = null;
   const contentType = c.req.header("content-type") || "";
+  const inputType = contentType.includes("application/json") ? "json" : contentType.includes("multipart/form-data") ? "form" : "unknown";
+  console.log("[analyze] POST /api/analyze received", { contentType: inputType });
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("[analyze] OPENAI_API_KEY is not set");
+    return c.json({ error: "Server configuration error: OPENAI_API_KEY is not set. Add it to your .env file." }, 500);
+  }
+
+  let input: AnalysisInput | null = null;
 
   if (contentType.includes("application/json")) {
     const body = await c.req.json<{
@@ -59,14 +67,18 @@ analyze.post("/analyze", async (c) => {
         input = { mode: "text", text };
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Failed to extract text from file";
+        console.error("[analyze] File extraction failed:", msg);
         return c.json({ error: msg }, 400);
       }
     } else if (body.url) {
       try {
+        console.log("[analyze] Capturing screenshot for URL:", body.url);
         const imageData = await screenshotUrl(body.url);
+        console.log("[analyze] Screenshot captured successfully");
         input = { mode: "image", imageData };
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Failed to capture URL screenshot";
+        console.error("[analyze] Screenshot failed:", msg);
         return c.json({ error: msg }, 400);
       }
     } else if (body.image) {
@@ -101,15 +113,18 @@ analyze.post("/analyze", async (c) => {
   }
 
   if (!input) {
+    console.warn("[analyze] No valid input provided");
     return c.json({
       error:
         "No input provided. Send JSON: { image }, { url }, { text }, or { file, mimeType }. Or multipart form with 'file'.",
     }, 400);
   }
 
+  console.log("[analyze] Starting analysis, mode:", input.mode);
+
   if (input.mode === "text") {
     const textContent = input.text;
-    return createDataStreamResponse({
+    const streamRes = createDataStreamResponse({
       execute: async (writer) => {
         const { object } = await generateObject({
           model: openai(openaiModel),
@@ -142,8 +157,14 @@ analyze.post("/analyze", async (c) => {
 
         result.mergeIntoDataStream(writer);
       },
-      onError: (err) => (err instanceof Error ? err.message : "An error occurred"),
+      onError: (err) => {
+        const msg = err instanceof Error ? err.message : "An error occurred";
+        console.error("[analyze] Stream error (text):", msg);
+        return msg;
+      },
     });
+    streamRes.headers.set("Content-Encoding", "none");
+    return streamRes;
   }
 
   const imageContent = {
@@ -152,45 +173,60 @@ analyze.post("/analyze", async (c) => {
     mimeType: "image/png" as const,
   };
 
-  return createDataStreamResponse({
+  const streamRes = createDataStreamResponse({
     execute: async (writer) => {
-      const { object } = await generateObject({
-        model: openai(openaiModel),
-        schema: profileSchema,
-        system: STRUCTURED_ANALYSIS_SYSTEM,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Analyze this profile screenshot and return the grade and viral ideas." },
-              imageContent,
-            ],
-          },
-        ],
-      });
+      try {
+        console.log("[analyze] Execute started, calling OpenAI generateObject (vision)...");
+        const { object } = await generateObject({
+          model: openai(openaiModel),
+          schema: profileSchema,
+          system: STRUCTURED_ANALYSIS_SYSTEM,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Analyze this profile screenshot and return the grade and viral ideas." },
+                imageContent,
+              ],
+            },
+          ],
+        });
+        console.log("[analyze] generateObject done, grade:", object.grade);
 
-      writer.writeData({
-        type: "profile-result",
-        grade: object.grade,
-        viralIdeas: object.viralIdeas,
-      });
+        writer.writeData({
+          type: "profile-result",
+          grade: object.grade,
+          viralIdeas: object.viralIdeas,
+        });
 
-      const result = streamText({
-        model: openai(openaiModel),
-        system: ROAST_SYSTEM,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Roast this profile. Be witty and punchy." },
-              imageContent,
-            ],
-          },
-        ],
-      });
+        console.log("[analyze] Starting roast streamText...");
+        const result = streamText({
+          model: openai(openaiModel),
+          system: ROAST_SYSTEM,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Roast this profile. Be witty and punchy." },
+                imageContent,
+              ],
+            },
+          ],
+        });
 
-      result.mergeIntoDataStream(writer);
+        result.mergeIntoDataStream(writer);
+        console.log("[analyze] Stream complete");
+      } catch (err) {
+        console.error("[analyze] Execute error:", err);
+        throw err;
+      }
     },
-    onError: (err) => (err instanceof Error ? err.message : "An error occurred"),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "An error occurred";
+      console.error("[analyze] Stream error (image):", msg);
+      return msg;
+    },
   });
+  streamRes.headers.set("Content-Encoding", "none");
+  return streamRes;
 });

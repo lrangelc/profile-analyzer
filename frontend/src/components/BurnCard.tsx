@@ -86,7 +86,7 @@ export function BurnCardExport({
       <div className="fixed -left-[9999px] top-0">
         <BurnCard ref={cardRef} grade={grade} bestRoastLine={bestRoastLine} />
       </div>
-      <Button onClick={handleDownload} className="gap-2">
+      <Button onClick={handleDownload} className="gap-2" size="lg">
         <Download className="w-4 h-4" />
         Download & Share
       </Button>

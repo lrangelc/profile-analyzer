@@ -108,7 +108,7 @@ export function ScanZone({
             {activeTab === id && (
               <motion.span
                 layoutId="tab-indicator"
-                className="absolute inset-0 rounded-md bg-[hsl(var(--primary))]"
+                className="absolute inset-0 z-0 rounded-md bg-[hsl(var(--primary))]"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               />
             )}
